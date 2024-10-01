@@ -2,9 +2,16 @@ package hexlet.code;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import hexlet.code.controllers.RootController;
+import hexlet.code.controllers.UrlController;
 import hexlet.code.repository.BaseRepository;
+import hexlet.code.util.NamedRoutes;
 import io.javalin.Javalin;
 import lombok.extern.slf4j.Slf4j;
+import gg.jte.ContentType;
+import gg.jte.TemplateEngine;
+import io.javalin.rendering.template.JavalinJte;
+import gg.jte.resolve.ResourceCodeResolver;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -43,12 +50,19 @@ public class App {
 
         Javalin app = Javalin.create(javalinConfig -> {
             javalinConfig.bundledPlugins.enableDevLogging();
+            javalinConfig.fileRenderer(new JavalinJte(createTemplateEngine()));
         });
-        return Javalin.create(config -> {
-            config.bundledPlugins.enableDevLogging();
-        }).get("/", ctx -> {
-            ctx.result("Hello World");
-        });
+
+        app.get(NamedRoutes.rootPath(), RootController::index);
+        app.get(NamedRoutes.urlsPath(), UrlController::listUrls);
+        app.post(NamedRoutes.urlsPath(), UrlController::createUrl);
+        app.get(NamedRoutes.urlPath("{id}"), UrlController::showUrl);
+        app.post(NamedRoutes.urlChecksPath("{id}"), UrlController::checkUrl);
+
+        return app;
+
+
+
     }
 
     public static void main(String[] args) throws SQLException {
@@ -58,5 +72,12 @@ public class App {
         app.start(getPort());
 
         log.info("Приложение успешно запущено на порту 7000");
+    }
+
+    private static TemplateEngine createTemplateEngine() {
+        ClassLoader classLoader = App.class.getClassLoader();
+        ResourceCodeResolver codeResolver = new ResourceCodeResolver("templates", classLoader);
+        TemplateEngine templateEngine = TemplateEngine.create(codeResolver, ContentType.Html);
+        return templateEngine;
     }
 }

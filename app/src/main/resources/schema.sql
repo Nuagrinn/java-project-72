@@ -1,9 +1,11 @@
+DROP TABLE IF EXISTS url_checks;
 DROP TABLE IF EXISTS urls;
 
 CREATE TABLE urls (
     id SERIAL PRIMARY KEY NOT NULL,
     name VARCHAR NOT NULL,
-    created_at TIMESTAMP
+    created_at TIMESTAMP,
+    CONSTRAINT pk_url PRIMARY KEY (id)
 );
 
 CREATE TABLE url_checks
@@ -14,7 +16,9 @@ CREATE TABLE url_checks
     h1 VARCHAR,
     title VARCHAR,
     description TEXT,
-    created_at TIMESTAMP
+    created_at TIMESTAMP,
+    CONSTRAINT pk_url_checks PRIMARY KEY (id)
+
 );
 
 

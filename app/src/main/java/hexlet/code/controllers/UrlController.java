@@ -40,38 +40,36 @@ public final class UrlController {
         var inputUrl = ctx.formParam("url");
         URL parsedUrl;
         try {
-            var uri = new URI(inputUrl);
-            parsedUrl = uri.toURL();
+            parsedUrl = new URI(inputUrl).toURL();
         } catch (Exception e) {
-            ctx.sessionAttribute("flash", "Некорректный URL");
-            ctx.sessionAttribute("flash-type", "danger");
+            setFlashMessage(ctx, "Некорректный URL", "danger");
             ctx.redirect(NamedRoutes.rootPath());
             return;
         }
-
-        String normalizedUrl = String
-                .format(
-                        "%s://%s%s",
-                        parsedUrl.getProtocol(),
-                        parsedUrl.getHost(),
-                        parsedUrl.getPort() == -1 ? "" : ":" + parsedUrl.getPort()
-                )
-                .toLowerCase();
-
+        String normalizedUrl = normalizeUrl(parsedUrl);
         Url url = UrlRepository.findByName(normalizedUrl).orElse(null);
-
         if (url != null) {
-            ctx.sessionAttribute("flash", "Страница уже существует");
-            ctx.sessionAttribute("flash-type", "info");
+            setFlashMessage(ctx, "Страница уже существует", "info");
         } else {
-            Url newUrl = new Url(normalizedUrl);
-            UrlRepository.save(newUrl);
-            ctx.sessionAttribute("flash", "Страница успешно добавлена");
-            ctx.sessionAttribute("flash-type", "success");
+            UrlRepository.save(new Url(normalizedUrl));
+            setFlashMessage(ctx, "Страница успешно добавлена", "success");
         }
-
         ctx.redirect("/urls", HttpStatus.forStatus(302));
-    };
+    }
+
+    private static void setFlashMessage(Context ctx, String message, String type) {
+        ctx.sessionAttribute("flash", message);
+        ctx.sessionAttribute("flash-type", type);
+    }
+
+    private static String normalizeUrl(URL parsedUrl) {
+        return String.format(
+                "%s://%s%s",
+                parsedUrl.getProtocol(),
+                parsedUrl.getHost(),
+                parsedUrl.getPort() == -1 ? "" : ":" + parsedUrl.getPort()
+        ).toLowerCase();
+    }
 
     public static void showUrl(Context ctx) throws SQLException {
         long id = ctx.pathParamAsClass("id", Long.class).getOrDefault(null);

@@ -31,7 +31,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.7.1")
     implementation("com.konghq:unirest-java:3.14.5")
     implementation("org.jsoup:jsoup:1.18.1")
-    implementation("gg.jte:jte:2.2.0")
+    implementation("gg.jte:jte:3.1.9")
     implementation("io.javalin:javalin:6.1.3")
     implementation("io.javalin:javalin-bundle:6.1.3")
     implementation("io.javalin:javalin-rendering:6.1.3")

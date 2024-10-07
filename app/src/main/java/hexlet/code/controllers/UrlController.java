@@ -1,18 +1,19 @@
 package hexlet.code.controllers;
 
+import hexlet.code.dto.BasePage;
 import hexlet.code.dto.UrlPage;
 import hexlet.code.dto.UrlsPage;
 import hexlet.code.model.Url;
 import hexlet.code.model.UrlCheck;
 import hexlet.code.repository.UrlCheckRepository;
 import hexlet.code.repository.UrlRepository;
-import hexlet.code.util.NamedRoutes;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import io.javalin.http.NotFoundResponse;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -25,6 +26,7 @@ import java.util.Map;
 
 import static io.javalin.rendering.template.TemplateUtil.model;
 
+@Slf4j
 public final class UrlController {
 
     public static void listUrls(Context ctx) throws SQLException {
@@ -42,8 +44,14 @@ public final class UrlController {
         try {
             parsedUrl = new URI(inputUrl).toURL();
         } catch (Exception e) {
-            setFlashMessage(ctx, "Некорректный URL", "danger");
-            ctx.redirect(NamedRoutes.rootPath());
+            ctx.sessionAttribute("flash", "Некорректный URL");
+            ctx.sessionAttribute("flashType", "danger");
+            String flash = ctx.consumeSessionAttribute("flash");
+            String flashType = ctx.consumeSessionAttribute("flashType");
+            var basepage = new BasePage();
+            basepage.setFlash(flash);
+            basepage.setFlashType(flashType);
+            ctx.render("index.jte", model("page", basepage));
             return;
         }
         String normalizedUrl = normalizeUrl(parsedUrl);

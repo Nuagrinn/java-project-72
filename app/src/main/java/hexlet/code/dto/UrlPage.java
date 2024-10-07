@@ -7,9 +7,11 @@ import lombok.Getter;
 
 import java.util.List;
 
+
 @AllArgsConstructor
 @Getter
 public class UrlPage extends BasePage {
-    Url url;
-    private List<UrlCheck> urlChecks;
+    private Url url;
+    private List<UrlCheck> checks;
 }
+

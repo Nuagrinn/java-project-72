@@ -14,7 +14,9 @@ import io.javalin.rendering.template.JavalinJte;
 import gg.jte.resolve.ResourceCodeResolver;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.stream.Collectors;
 
@@ -32,15 +34,14 @@ public class App {
                         "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1;");
     }
 
-    public static Javalin getApp() throws SQLException {
+    public static Javalin getApp() throws IOException, SQLException {
         log.info("Создаём Javalin instance");
 
         var hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(getDBURL());
         var dataSource = new HikariDataSource(hikariConfig);
-        var url = App.class.getClassLoader().getResourceAsStream("schema.sql");
-        var sql = new BufferedReader(new InputStreamReader(url))
-                .lines().collect(Collectors.joining("\n"));
+        String sql = readResourceFile("schema.sql");
+
         log.info(sql);
         try (var connection = dataSource.getConnection();
              var statement = connection.createStatement()) {
@@ -60,12 +61,9 @@ public class App {
         app.post(NamedRoutes.urlChecksPath("{id}"), UrlController::checkUrl);
 
         return app;
-
-
-
     }
 
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) throws SQLException, IOException {
         log.info("Запускаем приложение");
 
         var app = getApp();
@@ -80,4 +78,13 @@ public class App {
         TemplateEngine templateEngine = TemplateEngine.create(codeResolver, ContentType.Html);
         return templateEngine;
     }
+
+    private static String readResourceFile(String fileName) throws IOException {
+        var inputStream = App.class.getClassLoader().getResourceAsStream(fileName);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            return reader.lines().collect(Collectors.joining("\n"));
+        }
+
+    }
+
 }
